@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.Json;
 
 namespace DiscordWebhookSender
 {
@@ -38,7 +39,7 @@ namespace DiscordWebhookSender
 
             };
 
-            string json = System.Text.Json.JsonSerializer.Serialize(message);
+            string json = JsonSerializer.Serialize(message);
             try
             {
 
