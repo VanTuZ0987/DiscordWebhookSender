@@ -64,5 +64,45 @@ namespace DiscordWebhookSender.Library
                 await Task.Delay(delaySecond * 1000);
             }
         }
+
+        public static async Task SendFile(string filePath, string? message = null)
+        {
+            if (string.IsNullOrEmpty(Token))
+            {
+                throw new InvalidOperationException("You forgot initialize the token");
+            }
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException($"File not found: {filePath}");
+            }
+            using var formData = new MultipartFormDataContent();
+
+            var fileBytes = await File.ReadAllBytesAsync(filePath);
+            var fileContent = new ByteArrayContent(fileBytes);
+
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            formData.Add(fileContent, "file", Path.GetFileName(filePath));
+
+            if (!string.IsNullOrEmpty(message))
+            {
+                formData.Add(new StringContent(message), "content");
+            }
+            if (!string.IsNullOrEmpty(BotName))
+            {
+                formData.Add(new StringContent(BotName), "username");
+            }
+            if (!string.IsNullOrEmpty(AvatarUrl))
+            {
+                formData.Add(new StringContent(AvatarUrl), "avatar_url");
+            }
+
+            var response = await httpClient.PostAsync(Token, formData);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Error: {response.StatusCode} - {error}");
+            }
+        }
     }
 }
